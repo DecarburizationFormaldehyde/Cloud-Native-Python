@@ -1,4 +1,5 @@
 from os import abort
+from urllib.parse import uses_relative
 
 from flask import Flask, render_template, request,jsonify,make_response
 import json
@@ -96,6 +97,58 @@ def add_user(new_user):
         return "success"
     conn.close()
     return jsonify(a_dict)
+
+@app.route('/api/v1/users', methods=['DELETE'])
+def delete_user():
+    if not request.json or not 'username' in request.json:
+        abort(400)
+    user=request.json.get('username')
+    return jsonify({'status':del_user(user)}),200
+
+def del_user(del_user):
+    conn = sqlite3.connect('identifier.sqlite')
+    print("Opened database successfully")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * from users where username=?", (del_user,))
+    data = cursor.fetchall()
+    if len(data) == 0:
+        abort(404)
+    else:
+        cursor.execute("Delete from users where username=?", (del_user,))
+        conn.commit()
+        return "success"
+
+@app.route('/api/v1/users/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    user = {}
+    if not request.json:
+        abort(400)
+    user['id']=user_id
+    key_list= request.json.keys()
+    for i in key_list:
+        user[i]=request.json[i]
+    print(user)
+    return jsonify({'status':upd_user(user)}),200
+
+def upd_user(user):
+    conn = sqlite3.connect('identifier.sqlite')
+    print("Opened database successfully")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * from users where id=?",(user['id'],))
+    data = cursor.fetchall()
+    if len(data) == 0:
+        abort(404)
+    else:
+        key_list= user.keys()
+        for i in key_list:
+            if i !="id":
+                print(user,i)
+                cursor.execute("""UPDATE users set {0}=? where id = ?""".format(i),(user[i],user['id']))
+                conn.commit()
+        return "success"
+
+
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=50000, debug=True)
