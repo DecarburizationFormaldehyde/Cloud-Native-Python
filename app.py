@@ -1,3 +1,5 @@
+from os import abort
+
 from flask import Flask, render_template, request,jsonify,make_response
 import json
 import sqlite3
@@ -20,7 +22,7 @@ def home_index():
     conn.close()
     return jsonify({'api_version':api_list}),200
 
-@app.route('/api/v1/users')
+@app.route('/api/v1/users', methods=['GET'])
 def get_users():
     return list_users();
 
@@ -42,9 +44,9 @@ def list_users():
 
 @app.route('/api/v1/users/<userid>', methods=['GET'])
 def get_user(userid):
-    return list_users(userid)
+    return list_user(userid)
 
-def list_users(userid):
+def list_user(userid):
     conn = sqlite3.connect('identifier.sqlite')
     user = None
     print("Opened database successfully")
@@ -62,6 +64,38 @@ def list_users(userid):
 @app.errorhandler(404)
 def page_not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
+
+@app.route('/api/v1/users', methods=['POST'])
+def create_user():
+    if not request.json or not 'username' in request.json or not 'email' in request.json or not 'password' in request.json:
+        abort(400)
+    user={
+        'username':request.json.get('username'),
+        'email':request.json.get('email'),
+        'password':request.json.get('password'),
+        'name':request.json.get('name')
+    }
+    return  jsonify({'status':add_user(user)}),201
+
+@app.errorhandler(400)
+def invaild_request(error):
+    return make_response(jsonify({'error': 'Bad request'}), 400)
+
+def add_user(new_user):
+    conn = sqlite3.connect('identifier.sqlite')
+    print("Opened database successfully")
+    api_list = []
+    cursor = conn.cursor()
+    cursor.execute("SELECT * from users where id=? or emailid=?",(new_user['username'],new_user['email']))
+    data = cursor.fetchall()
+    if len(data) != 0:
+        abort(409)
+    else:
+        cursor.execute("Insert into users (username,emailid,password,full_name) values (?,?,?,?)",(new_user['username'],new_user['email'],new_user['password'],new_user['name']))
+        conn.commit()
+        return "success"
+    conn.close()
+    return jsonify(a_dict)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=50000, debug=True)
