@@ -30,3 +30,11 @@ CREATE TABLE tweets(
     body varchar2(30),
     tweet_time date
 );
+
+INSERT INTO tweets
+(username, body, tweet_time)
+values (
+        'Manish',
+        'Hello World',
+        '2017-01-01 10:00:00'
+       );
