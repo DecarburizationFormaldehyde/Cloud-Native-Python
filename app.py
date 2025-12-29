@@ -1,6 +1,7 @@
 from os import abort
 from time import strftime, gmtime
 from urllib.parse import uses_relative
+from flask import render_template
 
 from flask import Flask, render_template, request,jsonify,make_response
 import json
@@ -174,6 +175,7 @@ def list_tweets():
 def add_tweets():
     user_tweet={}
     if not request.json or not 'username' in request.json or not 'body' in request.json:
+        print(request)
         abort(400)
     user_tweet['username']=request.json.get('username')
     user_tweet['body']=request.json.get('body')
@@ -215,6 +217,10 @@ def list_tweet(user_id):
 
     conn.close()
     return jsonify({'tweet':tweets})
+
+@app.route('/adduser')
+def adduser():
+    return render_template('adduser.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=50000, debug=True)
