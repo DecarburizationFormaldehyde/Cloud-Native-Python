@@ -14,16 +14,16 @@
     <form data-bind="submit: addUser">
     <table class="table table-striped">
         <div>
-            Name:<input type="text" placeholder="Full name of user"/>
+            Name:<input data-bind="value:name" type="text" placeholder="Full name of user"/>
         </div>
         <div>
-            Username: <input placeholder="Username" type="username"/>
+            Username: <input data-bind="value:username" placeholder="Username" type="username"/>
         </div>
         <div>
-          email: <input placeholder="Email id" type="email">
+          email: <input data-bind="value:email" placeholder="Email id" type="email">
         </div>
         <div>
-          password: <input type="password" placeholder="Password"/>
+          password: <input data-bind="value:password" type="password" placeholder="Password"/>
         </div>
         <div>
           <button type="submit">Add User</button>

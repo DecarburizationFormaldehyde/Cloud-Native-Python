@@ -1,6 +1,7 @@
 function User(data){
     this.id=ko.observable(data.id);
     this.name=ko.observable(data.name);
+    this.username=ko.observable(data.username);
     this.email=ko.observable(data.email);
     this.password=ko.observable(data.password);
 };
@@ -19,6 +20,14 @@ function UserListViewModel(){
         self.email("");
         self.password("");
     };
+
+    $.getJSON('/api/v1/users', function(userModels) {
+	var t = $.map(userModels.user_list, function(item) {
+	    return new User(item);
+	});
+	self.user_list(t);
+    });
+
     self.save = function (){
         return $.ajax({
             type: "POST",
@@ -33,7 +42,7 @@ function UserListViewModel(){
             success: function(data){
                 alert("success")
                 console.log("Pushing to users array")
-                self.push(new User({name:data.name, username:data.username, email:data.email, password:data.password}))
+                self.user_list.push(new User({name:data.name, username:data.username, email:data.email, password:data.password}))
                 return ;
             },
             error: function(data){
@@ -44,10 +53,3 @@ function UserListViewModel(){
 }
 
 ko.applyBindings(new UserListViewModel());
-
-$.getJSON('/api/v1/users', function(userModels) {
- var t = $.map(userModels.user_list, function(item) {
- return new User(item);
- });
- self.user_list(t);
- });
