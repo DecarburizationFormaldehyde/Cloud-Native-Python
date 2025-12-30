@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Twitter Application</title>
+</head>
+<body>
+<form data-bind="submit:addTweet">
+    <div class="navbar">
+         <div class="navbar-inner">
+            <a class="brand" href="#">Twitter App Demo</a>
+        </div>
+    </div>
+    <div id="main" class="container">
+        <table  class="table table-striped">
+            <div>
+                Username:<input placeholder="Username" type="username" data-bind="value:username"/>
+            </div>
+            <div>
+                body:<input placeholder="Content of tweet" type="text"data-bind="value:body"/>
+            </div>
+            <div>
+                <button type="submit">Add Tweet</button>
+            </div>
+        </table>
+    </div>
+    <ul data-bind="foreach: tweets_list, visible: tweets_list().length> 0">
+         <li>
+             <p data-bind="text: username"></p>
+             <p data-bind="text: body"></p>
+             <p data-bind="text: timestamp"></p>
+         </li>
+    </ul>
+</form>
+<meta name="viewport" content="width=device-width",initial-scale=1.0">
+<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css",rel="stylesheet"></link>
+<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.7.1.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-3.5.0.js"></script>
+<script src="{{ url_for('static', filename='tweet.js') }}"></script>
+</body>
+</html>
