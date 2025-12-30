@@ -181,7 +181,8 @@ def add_tweets():
     user_tweet['body']=request.json.get('body')
     user_tweet['creat_at']=strftime("%Y-%m-%dT %H:%M:%SZ", gmtime())
     print(user_tweet)
-    return jsonify({'status':add_tweet(user_tweet)}),200
+    result=add_tweet(user_tweet)
+    return jsonify({'status':result,"username":user_tweet['username'],'body':user_tweet['body']}),200
 
 def add_tweet(new_tweets):
     conn = sqlite3.connect('identifier.sqlite')
@@ -189,7 +190,6 @@ def add_tweet(new_tweets):
     cursor= conn.cursor()
     cursor.execute("SELECT * from users where username=?",(new_tweets['username'],))
     data = cursor.fetchall()
-
     if len(data) == 0:
         abort(404)
     else:
@@ -221,6 +221,10 @@ def list_tweet(user_id):
 @app.route('/adduser')
 def adduser():
     return render_template('adduser.html')
+
+@app.route("/addtweets")
+def addtweetsjs():
+    return render_template("addtweets.html")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=50000, debug=True)
