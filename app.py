@@ -78,7 +78,8 @@ def create_user():
         'password':request.json.get('password'),
         'name':request.json.get('name')
     }
-    return  jsonify({'status':add_user(user)}),201
+    result = add_user(user)
+    return  jsonify({'status':result,'username':user['username'],'email':user['email'],'password':user['password'],'name':user['name'],"password":user['password']}),201
 
 @app.errorhandler(400)
 def invaild_request(error):
@@ -96,9 +97,8 @@ def add_user(new_user):
     else:
         cursor.execute("Insert into users (username,emailid,password,full_name) values (?,?,?,?)",(new_user['username'],new_user['email'],new_user['password'],new_user['name']))
         conn.commit()
+        conn.close()
         return "success"
-    conn.close()
-    return jsonify(a_dict)
 
 @app.route('/api/v1/users', methods=['DELETE'])
 def delete_user():

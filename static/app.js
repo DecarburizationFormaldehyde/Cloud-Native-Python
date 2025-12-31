@@ -22,8 +22,8 @@ function UserListViewModel(){
     };
 
     $.getJSON('/api/v1/users', function(userModels) {
-	var t = $.map(userModels.user_list, function(item) {
-	    return new User(item);
+	var t = $.map(userModels.userlist, function(item) {
+        return new User(item);
 	});
 	self.user_list(t);
     });
