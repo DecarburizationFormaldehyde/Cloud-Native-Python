@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Twitter App Demo</title>
+      <link rel=strylesheet type="text/css" href="{{ url_for('static',filename='style.css') }}">
+</head>
+<body>
+    <div id="container">
+        <div id="title">
+            <h1>Enter your name</h1>
+        </div>
+        <div id="content">
+            <form method="get" action="{{ url_for('addname') }}">
+                <label for="youname">Please enter your name:</label>
+                <input type="text" name="yourname"/><br/>
+                <input type="submit" />
+            </form>
+        </div>
+        <div class="title">
+            <h1></h1>
+        </div>
+        <code>
+            <pre></pre>
+        </code>
+    </div>
+<meta name="viewport" content="width=device-width",initial-scale=1.0">
+<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css",rel="stylesheet"></link>
+</body>
+</html>

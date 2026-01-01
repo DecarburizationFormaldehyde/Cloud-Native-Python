@@ -1,13 +1,18 @@
 from os import abort
 from time import strftime, gmtime
 from urllib.parse import uses_relative
-from flask import render_template
+from flask import render_template, redirect, session, url_for
 
 from flask import Flask, render_template, request,jsonify,make_response
 import json
 import sqlite3
 
+from flask_cors import CORS,cross_origin
+
 app = Flask(__name__)
+app.config.from_object(__name__)
+app.secret_key = 'F12Zr47j\3yX R~X@H!jmM]Lwf/,?KT'
+CORS(app)
 
 @app.route('/api/V1/info')
 def home_index():
@@ -225,6 +230,24 @@ def adduser():
 @app.route("/addtweets")
 def addtweetsjs():
     return render_template("addtweets.html")
+
+@app.route('/')
+def main():
+    return render_template('main.html')
+
+@app.route('/addname')
+def addname():
+    if request.args.get('yourname'):
+        session['name'] = request.args.get('yourname')
+        return redirect(url_for('main'))
+    else:
+        return render_template("addname.html",session=session)
+
+@app.route('/clear')
+def clearsession():
+    session.clear()
+    return redirect(url_for('main'))
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=50000, debug=True)
