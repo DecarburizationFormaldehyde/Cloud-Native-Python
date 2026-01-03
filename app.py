@@ -1,13 +1,13 @@
 from os import abort
 from time import strftime, gmtime
-from urllib.parse import uses_relative
 from flask import render_template, redirect, session, url_for
 
 from flask import Flask, render_template, request,jsonify,make_response
-import json
 import sqlite3
 
 from flask_cors import CORS,cross_origin
+
+from pymongo import MongoClient
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -249,5 +249,49 @@ def clearsession():
     return redirect(url_for('main'))
 
 
+connection=MongoClient("mongodb://localhost:27017")
+def create_mongodatabase():
+    try:
+        dbnames=connection.list_database_names()
+        if 'cloud_native' not in dbnames:
+            db=connection.cloud_native.users
+            db_tweets=connection.cloud_native.tweets
+            db_api=connection.cloud_native.apirelease
+
+            db.insert_one({
+                "email":"eric.strom@google.com",
+                "id": 33,
+                "name": "Eric stromberg",
+                "password": "eric@123",
+                "username": "eric.strom"
+            })
+
+            db_tweets.insert_one({
+                "body": "New blog post,Launch your app with the AWS Startup Kit!  # AWS",
+                "id": 18,
+                "timestamp": "2017-03-11T06:39:40Z",
+                "tweetedby": "eric.strom"
+            })
+
+            db_api.insert_one({
+                "buildtime": "2017-01-01 10:00:00",
+                "links": "/api/v1/users",
+                "methods": "get, post, put, delete",
+                "version": "v1"
+            })
+            db_api.insert_one({
+                "buildtime": "2017-02-11 10:00:00",
+                "links": "api/v2/tweets",
+                "methods": "get, post",
+                "version": "2017-01-10 10:00:00"
+            })
+            print("Database Initialize completed!")
+        else:
+            print("Database already Initialized!")
+    except:
+        print("Database Initialize failed!")
+
+
 if __name__ == '__main__':
+    create_mongodatabase()
     app.run(host='0.0.0.0', port=50000, debug=True)
