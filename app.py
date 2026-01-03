@@ -1,6 +1,8 @@
-from os import abort
+import random
+from sqlite3.dbapi2 import apilevel
+from tarfile import data_filter
 from time import strftime, gmtime
-from flask import render_template, redirect, session, url_for
+from flask import render_template, redirect, session, url_for,abort
 
 from flask import Flask, render_template, request,jsonify,make_response
 import sqlite3
@@ -14,20 +16,12 @@ app.config.from_object(__name__)
 app.secret_key = 'F12Zr47j\3yX R~X@H!jmM]Lwf/,?KT'
 CORS(app)
 
-@app.route('/api/V1/info')
+@app.route('/api/v1/info')
 def home_index():
-    conn = sqlite3.connect('identifier.sqlite')
-    print("Opened database successfully")
     api_list = []
-    cursor = conn.execute("SELECT buildtime,version,methods,links FROM apirelease")
-    for row in cursor:
-        a_dic={}
-        a_dic['buildtime']=row[1]
-        a_dic['version']=row[0]
-        a_dic['methods']=row[2]
-        a_dic['links']=row[3]
-        api_list.append(a_dic)
-    conn.close()
+    db=connection.cloud_native.apirelease
+    for row in db.find():
+        api_list.append(str(row))
     return jsonify({'api_version':api_list}),200
 
 @app.route('/api/v1/users', methods=['GET'])
@@ -35,19 +29,10 @@ def get_users():
     return list_users();
 
 def list_users():
-    conn = sqlite3.connect('identifier.sqlite')
-    print("Opened database successfully")
     api_list = []
-    cursor = conn.execute("SELECT username,full_name,emailid,password,id FROM users")
-    for row in cursor:
-        a_dic={}
-        a_dic['username']=row[0]
-        a_dic['full_name']=row[1]
-        a_dic['email']=row[2]
-        a_dic['password']=row[3]
-        a_dic['id']=row[4]
-        api_list.append(a_dic)
-    conn.close()
+    db=connection.cloud_native.users
+    for row in db.find():
+        api_list.append(str(row))
     return jsonify({'userlist':api_list}),200
 
 @app.route('/api/v1/users/<userid>', methods=['GET'])
@@ -55,19 +40,13 @@ def get_user(userid):
     return list_user(userid)
 
 def list_user(userid):
-    conn = sqlite3.connect('identifier.sqlite')
-    user = None
-    print("Opened database successfully")
-    cursor = conn.execute("SELECT * FROM users where id=?",(userid,))
-    data = cursor.fetchall()
-    if len(data) != 0:
-        user = {}
-        user['username']=data[0][0]
-        user['email']=data[0][1]
-        user['password']=data[0][2]
-        user['id']=data[0][3]
-    conn.close()
-    return jsonify({'user':user})
+    api_list = []
+    db = connection.cloud_native.users
+    for i in db.find({'id':int(userid)}):
+        api_list.append(str(i))
+    if api_list == []:
+        abort(404)
+    return jsonify({'user':api_list})
 
 @app.errorhandler(404)
 def page_not_found(error):
@@ -81,7 +60,8 @@ def create_user():
         'username':request.json.get('username'),
         'email':request.json.get('email'),
         'password':request.json.get('password'),
-        'name':request.json.get('name')
+        'name':request.json.get('name'),
+        'id':random.randint(1,1000)
     }
     result = add_user(user)
     return  jsonify({'status':result,'username':user['username'],'email':user['email'],'password':user['password'],'name':user['name'],"password":user['password']}),201
@@ -91,19 +71,17 @@ def invaild_request(error):
     return make_response(jsonify({'error': 'Bad request'}), 400)
 
 def add_user(new_user):
-    conn = sqlite3.connect('identifier.sqlite')
-    print("Opened database successfully")
     api_list = []
-    cursor = conn.cursor()
-    cursor.execute("SELECT * from users where id=? or emailid=?",(new_user['username'],new_user['email']))
-    data = cursor.fetchall()
-    if len(data) != 0:
-        abort(409)
+    db=connection.cloud_native.users
+    user = db.find({'$or': [{"username":new_user['username']},{"email":new_user['email']}]})
+    for i in user:
+        print(str(i))
+        api_list.append(str(i))
+    if api_list==[]:
+        db.insert_one(new_user)
+        return "Success"
     else:
-        cursor.execute("Insert into users (username,emailid,password,full_name) values (?,?,?,?)",(new_user['username'],new_user['email'],new_user['password'],new_user['name']))
-        conn.commit()
-        conn.close()
-        return "success"
+        abort(409)
 
 @app.route('/api/v1/users', methods=['DELETE'])
 def delete_user():
@@ -113,17 +91,15 @@ def delete_user():
     return jsonify({'status':del_user(user)}),200
 
 def del_user(del_user):
-    conn = sqlite3.connect('identifier.sqlite')
-    print("Opened database successfully")
-    cursor = conn.cursor()
-    cursor.execute("SELECT * from users where username=?", (del_user,))
-    data = cursor.fetchall()
-    if len(data) == 0:
+    db = connection.cloud_native.users
+    api_list=[]
+    for i in db.find({'username':del_user}):
+        api_list.append(str(i))
+    if api_list == []:
         abort(404)
     else:
-        cursor.execute("Delete from users where username=?", (del_user,))
-        conn.commit()
-        return "success"
+        db.delete_one({'username':del_user})
+        return "Success"
 
 @app.route('/api/v1/users/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
@@ -138,42 +114,27 @@ def update_user(user_id):
     return jsonify({'status':upd_user(user)}),200
 
 def upd_user(user):
-    conn = sqlite3.connect('identifier.sqlite')
-    print("Opened database successfully")
-    cursor = conn.cursor()
-    cursor.execute("SELECT * from users where id=?",(user['id'],))
-    data = cursor.fetchall()
-    if len(data) == 0:
-        abort(404)
+    api_list = []
+    print(user)
+    db_user=connection.cloud_native.users
+    users=db_user.find({'id':int(user['id'])})
+    for i in users:
+        api_list.append(str(i))
+    if api_list == []:
+        abort(409)
     else:
-        key_list= user.keys()
-        for i in key_list:
-            if i !="id":
-                print(user,i)
-                cursor.execute("""UPDATE users set {0}=? where id = ?""".format(i),(user[i],user['id']))
-                conn.commit()
-        return "success"
+        db_user.update_one({'id':int(user['id'])},{'$set':user},upsert=False)
+        return "Success"
 
 @app.route('/api/v2/tweets', methods=['GET'])
 def get_tweets():
     return list_tweets()
+
 def list_tweets():
-    conn = sqlite3.connect('identifier.sqlite')
-    print("Opened database successfully")
-    api_list = []
-    cursor = conn.execute("SELECT username,body,tweet_time,id FROM tweets")
-    data=cursor.fetchall()
-    if data != 0 :
-        for row in data:
-            tweets= {}
-            tweets['Tweet By']=row[0]
-            tweets['Body']=row[1]
-            tweets['Timestamp']=row[2]
-            tweets['id']=row[3]
-            api_list.append(tweets)
-    else:
-        return api_list
-    conn.close()
+    api_list=[]
+    db=connection.cloud_native.tweets
+    for row in db.find():
+        api_list.append(str(row))
     return jsonify({'tweets_list':api_list})
 
 @app.route('/api/v2/tweets', methods=['POST'])
@@ -190,16 +151,17 @@ def add_tweets():
     return jsonify({'status':result,"username":user_tweet['username'],'body':user_tweet['body']}),200
 
 def add_tweet(new_tweets):
-    conn = sqlite3.connect('identifier.sqlite')
-    print("Opened database successfully")
-    cursor= conn.cursor()
-    cursor.execute("SELECT * from users where username=?",(new_tweets['username'],))
-    data = cursor.fetchall()
-    if len(data) == 0:
+    api_list=[]
+    print(new_tweets)
+    db_user=connection.cloud_native.users
+    db_tweet=connection.cloud_native.tweets
+    user=db_user.find({'username':new_tweets['username']})
+    for i in user:
+        api_list.append(str(i))
+    if api_list == []:
         abort(404)
     else:
-        cursor.execute("Insert into tweets (username,body,tweet_time) values (?,?,?)",(new_tweets['username'],new_tweets['body'],new_tweets['creat_at']))
-        conn.commit()
+        db_tweet.insert_one(new_tweets)
         return "success"
 
 @app.route('/api/v2/tweets/<int:id>', methods=['GET'])
@@ -207,21 +169,14 @@ def get_tweet(id):
     return list_tweet(id)
 
 def list_tweet(user_id):
-    conn = sqlite3.connect('identifier.sqlite')
-    print("Opened database successfully")
-    cursor = conn.execute("SELECT username,body,tweet_time,id FROM tweets where id=?",(user_id,))
-    data=cursor.fetchall()
-    if len(data) == 0 :
+    db=connection.cloud_native.tweets
+    api_list=[]
+    tweet=db.find({'id':int(user_id)})
+    for i in tweet:
+        api_list.append(str(i))
+    if api_list == []:
         abort(404)
-    else:
-        tweets= {}
-        tweets['username']=data[0][0]
-        tweets['body']=data[0][1]
-        tweets['tweet_time']=data[0][2]
-        tweets['id']=data[0][3]
-
-    conn.close()
-    return jsonify({'tweet':tweets})
+    return jsonify({'tweet':api_list})
 
 @app.route('/adduser')
 def adduser():
