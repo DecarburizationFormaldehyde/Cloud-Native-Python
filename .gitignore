@@ -2,3 +2,4 @@
 .idea
 .gitignore
 identifier.sqlite
+node_modules

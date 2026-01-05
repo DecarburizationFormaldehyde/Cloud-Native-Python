@@ -1,4 +1,4 @@
-function Tweet(data){
+function Tweets(data){
     this.id=ko.observable(data.id);
     this.username=ko.observable(data['Tweet By']);
     this.body=ko.observable(data.Body);
@@ -19,7 +19,7 @@ function TweetListViewModel(){
 
     $.getJSON('/api/v2/tweets', function(tweetModels) {
      var t = $.map(tweetModels.tweets_list, function(item) {
-     return new Tweet(item);
+     return new Tweets(item);
      });
      self.tweets_list(t);
      });
@@ -36,7 +36,7 @@ function TweetListViewModel(){
             success: function(data){
                 alert("success")
                 console.log("Pushing to tweets array")
-                self.tweets_list.push(new Tweet({ 'Tweet By':data.username, Body:data.body}))
+                self.tweets_list.push(new Tweets({ 'Tweet By':data.username, Body:data.body}))
                 return ;
             },
             error: function(data){
