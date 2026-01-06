@@ -1,6 +1,8 @@
 import random
+from os.path import exists
 from sqlite3.dbapi2 import apilevel
-from tarfile import data_filter
+
+from flask import flash
 from time import strftime, gmtime
 from flask import render_template, redirect, session, url_for,abort
 
@@ -10,6 +12,7 @@ import sqlite3
 from flask_cors import CORS,cross_origin
 
 from pymongo import MongoClient
+import bcrypt
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -78,6 +81,9 @@ def add_user(new_user):
         print(str(i))
         api_list.append(str(i))
     if api_list==[]:
+        # 对密码进行哈希处理
+        if 'password' in new_user and new_user['password']:
+            new_user['password'] = bcrypt.hashpw(new_user['password'].encode('utf-8'), bcrypt.gensalt())
         db.insert_one(new_user)
         return "Success"
     else:
@@ -123,6 +129,9 @@ def upd_user(user):
     if api_list == []:
         abort(409)
     else:
+        # 如果更新包含密码，需要进行哈希处理
+        if 'password' in user and user['password']:
+            user['password'] = bcrypt.hashpw(user['password'].encode('utf-8'), bcrypt.gensalt())
         db_user.update_one({'id':int(user['id'])},{'$set':user},upsert=False)
         return "Success"
 
@@ -187,12 +196,104 @@ def addtweetsjs():
     return render_template("addtweets.html")
 
 @app.route('/')
+def home():
+    if not session.get('logged_in'):
+        return render_template('login.html')
+    else:
+        return render_template('index.html',name=session['logged_in'])
+@app.route('/main')
 def main():
     return render_template('main.html')
+
+@app.route('/login', methods=['POST', 'GET'])
+def do_admin_login():
+    if request.method == 'POST':
+        users = connection.cloud_native.users
+        api_list=[]
+        login_user=users.find({'username':request.form['username']})
+        for i in login_user:
+            api_list.append(i)
+        print(api_list)
+        if api_list != []:
+            # 验证密码
+            user = api_list[0]
+            # 确保密码是字节类型用于bcrypt验证
+            password_from_db = user['password']
+            if isinstance(password_from_db, str):
+                password_from_db = password_from_db.encode('utf-8')
+            if bcrypt.checkpw(request.form['password'].encode('utf-8'), password_from_db):
+                session['logged_in'] = user['username']
+                session['username']=user['username']
+                return redirect(url_for('index'))
+            return 'Invalid username/password!'
+        else:
+            flash("Invalid Authentication")
+
+        return 'Invalid User!'
+    else:
+        if not session.get('logged_in'):
+            return render_template('login.html')
+        else:
+            return redirect(url_for('index'))
 
 @app.route('/index')
 def index():
     return render_template('index.html')
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        users = connection.cloud_native.users
+        api_list=[]
+        existing_user = users.find({'username': request.form['username']})
+        for i in existing_user:
+            api_list.append(i)
+        if api_list == []:
+            users.insert_one(
+                {
+                    'email':request.form['email'],
+                    'id':random.randint(1,1000),
+                    "name":request.form['name'],
+                    'username': request.form['username'],
+                    'password': bcrypt.hashpw(request.form['password'].encode('utf-8'), bcrypt.gensalt())
+                }
+            )
+            session['username']=request.form['username']
+            return redirect(url_for('home'))
+        return 'That username already exists!'
+    else:
+        return render_template('signup.html')
+
+@app.route('/profile',methods=['GET', 'POST'])
+def profile():
+    if request.method =='POST':
+        users=connection.cloud_native.users
+        api_list=[]
+        existing_users=users.find({'username':session['username']})
+        for i in existing_users:
+            api_list.append(i)
+        user={}
+        if api_list != []:
+            print(request.form['email'])
+            user['email']=request.form['email']
+            user['username']=request.form['username']
+            user['password']=bcrypt.hashpw(request.form['pass'].encode('utf-8'), bcrypt.gensalt())
+            users.update_one({'username':session['username']},{'$set':user})
+        else:
+            return 'Invalid User!'
+        return redirect(url_for('index'))
+    else:
+        users=connection.cloud_native.users
+        user=[]
+        existing_users=users.find({'username':session['username']})
+        for i in existing_users:
+            user.append(i)
+        return render_template('profile.html',name=user[0]['name'],username=user[0]['username'],email=user[0]['email'],password=user[0]['password'])
+
+@app.route('/logout')
+def logout():
+    session['logged_in'] = False
+    return redirect(url_for('home'))
 
 @app.route('/addname')
 def addname():
@@ -221,7 +322,7 @@ def create_mongodatabase():
                 "email":"eric.strom@google.com",
                 "id": 33,
                 "name": "Eric stromberg",
-                "password": "eric@123",
+                "password": bcrypt.hashpw("eric@123".encode('utf-8'), bcrypt.gensalt()),
                 "username": "eric.strom"
             })
 

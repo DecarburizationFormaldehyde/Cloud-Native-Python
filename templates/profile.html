@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Profile</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col s12 m8 offset-m2">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title center">Profile</span>
+                        <div class="row">
+                            <div class="col s12">
+                                <form method="POST" action="{{ url_for('profile') }}">
+                                    <div class="input-field">
+                                        <input type="text" class="validate" name="username" value='{{username or ""}}' id="username">
+                                        <label for="username">Username</label>
+                                    </div>
+                                    <div class="input-field">
+                                        <input type="email" class="validate" name="email" value='{{email or ""}}' id="email">
+                                        <label for="email">Email</label>
+                                    </div>
+                                    <div class="input-field">
+                                        <input type="text" class="validate" name="name" value='{{name or ""}}' id="name">
+                                        <label for="name">Full Name</label>
+                                    </div>
+                                    <div class="input-field">
+                                        <input type="password" class="validate" name="pass" id="password">
+                                        <label for="password">Password</label>
+                                        <span class="helper-text">Leave blank to keep current password</span>
+                                    </div>
+                                    <div class="center">
+                                        <button type="submit" class="btn waves-effect waves-light">Update</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</body>
+</html>

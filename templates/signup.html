@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign up</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col s12 m6 offset-m3">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Sign Up</span>
+                        <form action="{{ url_for('signup') }}" method="POST">
+                            <div class="input-field">
+                                <input type="text" id="username" name="username" class="validate" required>
+                                <label for="username">Username</label>
+                            </div>
+                            <div class="input-field">
+                                <input type="email" id="email" name="email" class="validate" required>
+                                <label for="email">Email</label>
+                            </div>
+                            <div class="input-field">
+                                <input type="password" id="password" name="password" class="validate" required>
+                                <label for="password">Password</label>
+                            </div>
+                            <div class="input-field">
+                                <input type="text" id="name" name="name" class="validate" required>
+                                <label for="name">Full Name</label>
+                            </div>
+                            <div class="card-action center">
+                                <button type="submit" class="btn waves-effect waves-light">Sign Up</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-action center">
+                        <a href="{{ url_for('do_admin_login') }}">Back to Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</body>
+</html>
