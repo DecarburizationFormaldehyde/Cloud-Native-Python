@@ -51,6 +51,14 @@ def list_user(userid):
         abort(404)
     return jsonify({'user':api_list})
 
+@app.route('/api/v1/session-user', methods=['GET'])
+def get_session_user():
+    # 检查用户是否已登录
+    if 'username' in session and session.get('logged_in'):
+        return jsonify({'username': session['username']}), 200
+    else:
+        return jsonify({'error': 'Not logged in'}), 401
+
 @app.errorhandler(404)
 def page_not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
