@@ -150,7 +150,7 @@ def get_tweets():
 def list_tweets():
     api_list=[]
     db=connection.cloud_native.tweets
-    for row in db.find():
+    for row in db.find().sort('creat_at',-1):
         api_list.append(str(row))
     return jsonify({'tweets_list':api_list})
 
@@ -162,7 +162,10 @@ def add_tweets():
         abort(400)
     user_tweet['username']=request.json.get('username')
     user_tweet['body']=request.json.get('body')
-    user_tweet['creat_at']=strftime("%Y-%m-%dT %H:%M:%SZ", gmtime())
+    user_tweet['creat_at']=strftime("%Y-%m-%dT%H:%M:%SZ", gmtime())
+    user_tweet['tweetedby']=request.json.get('username')
+    user_tweet['id']=random.randint(1,1000)
+    user_tweet['timestamp']=user_tweet['creat_at']
     print(user_tweet)
     result=add_tweet(user_tweet)
     return jsonify({'status':result,"username":user_tweet['username'],'body':user_tweet['body']}),200

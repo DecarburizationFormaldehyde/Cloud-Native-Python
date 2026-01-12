@@ -11,10 +11,26 @@ const initialState={
 const tweetReducer =(state=initialState,action)=>{
     switch(action.type){
         case ActionTypes.RECEVIED_TWEETS:
-            const processedTweets = action.payload.map(tweet =>({
-                ...tweet,
-                updatedate:moment(tweet.timestamp).fromNow()
-            }));
+            const processedTweets = action.payload.map(tweet => {
+                if(typeof tweet ==='string'){
+                    try {
+                        // 将Python字典格式转换为JSON格式
+                        let processedString = tweet
+                            .replace(/'/g, '"')  // 单引号替换为双引号
+                            .replace(/ObjectId\(['"]([^'"]+)['"]\)/g, '"$1"');  // 处理ObjectId
+
+                        tweet = JSON.parse(processedString);
+                    } catch(error) {
+                        console.error('JSON parse error:', error, 'Data:', tweet);
+                        // 返回默认格式或原始数据
+                        return { text: tweet, timestamp: Date.now() };
+                    }
+                }
+                return {
+                    ...tweet,
+                    updatedate:moment(tweet.timestamp).fromNow()
+                }
+            });
             return {
                 ...state,
                 tweets:processedTweets,

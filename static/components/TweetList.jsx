@@ -6,7 +6,7 @@ const TweetList = ({ tweets }) => {
     <div>
       <ul className="collection">
         {tweets.map(tweet => (
-          <TweetTemplate key={tweet.id || tweet._id} {...tweet} />
+          <TweetTemplate key={tweet._id} {...tweet} />
         ))}
       </ul>
     </div>
