@@ -1,0 +1,2 @@
+class InvalidOpreationError(RuntimeError):
+    pass
