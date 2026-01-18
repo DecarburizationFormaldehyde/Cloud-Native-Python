@@ -1,6 +1,5 @@
 import random
 from os.path import exists
-from sqlite3.dbapi2 import apilevel
 
 from flask import flash
 from time import strftime, gmtime
@@ -18,6 +17,8 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 app.secret_key = 'F12Zr47j\3yX R~X@H!jmM]Lwf/,?KT'
 CORS(app)
+
+connection=MongoClient("mongodb://localhost:27017")
 
 @app.route('/api/v1/info')
 def home_index():
@@ -319,8 +320,6 @@ def clearsession():
     session.clear()
     return redirect(url_for('main'))
 
-
-connection=MongoClient("mongodb://localhost:27017")
 def create_mongodatabase():
     try:
         dbnames=connection.list_database_names()

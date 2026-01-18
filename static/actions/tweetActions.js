@@ -2,7 +2,7 @@ import {ActionTypes} from "./actionTypes";
 import $ from 'jquery';
 
 export const receivedTweets =(tweets) =>({
-    type: ActionTypes.RECEVIED_TWEETS,
+    type: ActionTypes.RECEIVED_TWEETS,
     payload: tweets
     });
 

@@ -1,2 +1,2 @@
-class InvalidOpreationError(RuntimeError):
+class InvalidOperationError(RuntimeError):
     pass

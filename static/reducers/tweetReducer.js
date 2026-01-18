@@ -10,7 +10,7 @@ const initialState={
 
 const tweetReducer =(state=initialState,action)=>{
     switch(action.type){
-        case ActionTypes.RECEVIED_TWEETS:
+        case ActionTypes.RECEIVED_TWEETS:
             const processedTweets = action.payload.map(tweet => {
                 if(typeof tweet ==='string'){
                     try {
